@@ -95,135 +95,137 @@
   </div>
 
   <script>
-    const windStations = [
-      { name: "RUMS Mahindra Solar", lat: 24.477, lon: 81.55329, file: "RUMS_Mahindra_Solar.csv" },
-      { name: "TPREL_RSP", lat: 24.52, lon: 71.3, file: "TPREL_RSP.csv" },
-      { name: "Solapur Solar", lat: 17.552994, lon: 75.985641, file: "Solapur_Solar.csv" },
-      { name: "Adani RE Holding Four Ltd", lat: 24.12247, lon: 69.344, file: "Adani_RE_Holding_Four.csv" },
-      { name: "AGE26AL_PSS3_KPS1_SI", lat: 24.08, lon: 69.389, file: "AGE26AL_PSS3_KPS1_SI.csv" },
-      { name: "BEEMPOW_AGAR_RUMS_S", lat: 23.94, lon: 76.1, file: "BEEMPOW_AGAR_RUMS_S.csv" }
-    ];
+  const windStations = [
+    { name: "RUMS Mahindra Solar", lat: 24.477, lon: 81.55329, file: "RUMS_Mahindra_Solar.csv" },
+    { name: "TPREL_RSP", lat: 24.52, lon: 71.3, file: "TPREL_RSP.csv" },
+    { name: "Solapur Solar", lat: 17.552994, lon: 75.985641, file: "Solapur_Solar.csv" },
+    { name: "Adani RE Holding Four Ltd", lat: 24.12247, lon: 69.344, file: "Adani_RE_Holding_Four.csv" },
+    { name: "AGE26AL_PSS3_KPS1_SI", lat: 24.08, lon: 69.389, file: "AGE26AL_PSS3_KPS1_SI.csv" },
+    { name: "BEEMPOW_AGAR_RUMS_S", lat: 23.94, lon: 76.1, file: "BEEMPOW_AGAR_RUMS_S.csv" }
+  ];
 
-    const solarStations = [
-      { name: "solar Station 1", lat: 21.15, lon: 75.45, file: "solarStation1.csv" },
-      { name: "solar Station 2", lat: 22.85, lon: 74.20, file: "solarStation2.csv" }
-    ];
+  const solarStations = [
+    { name: "Solar Station 1", lat: 21.15, lon: 75.45, file: "SolarStation1.csv" },
+    { name: "Solar Station 2", lat: 22.85, lon: 74.20, file: "SolarStation2.csv" }
+  ];
 
-    let map = L.map('map').setView([22.5, 78.9], 5.2);
+  let map = L.map('map').setView([22.5, 78.9], 5.2);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap'
-    }).addTo(map);
+  let chart;
+  const ctx = document.getElementById('solarChart').getContext('2d');
 
-    let chart;
-    const ctx = document.getElementById('solarChart').getContext('2d');
+  function loadCSV(filePath, stationName) {
+    fetch(filePath)
+      .then(response => response.text())
+      .then(data => {
+        const rows = data.trim().split('\n');
+        const labels = [], forecast = [], actual = [];
 
-    function loadCSV(filePath, stationName) {
-      fetch(filePath)
-        .then(response => response.text())
-        .then(data => {
-          const rows = data.trim().split('\n');
-          const labels = [];
-          const forecast = [];
-          const actual = [];
+        for (let i = 1; i < rows.length; i++) {
+          const cols = rows[i].split(',');
+          labels.push(cols[0]);
+          forecast.push(parseFloat(cols[1]));
+          actual.push(parseFloat(cols[2]));
+        }
 
-          for (let i = 1; i < rows.length; i++) {
-            const cols = rows[i].split(',');
-            labels.push(cols[0]);             // Time
-            forecast.push(parseFloat(cols[1]));
-            actual.push(parseFloat(cols[2]));
-          }
-
-          if (chart) chart.destroy();
-          chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-              labels: labels,
-              datasets: [
-                {
-                  label: 'Forecasted (MW)',
-                  data: forecast,
-                  borderColor: 'cyan',
-                  borderWidth: 1,
-                  fill: false,
-                  tension: 0.3,
-                  pointRadius: 3
-                },
-                {
-                  label: 'Actual (MW)',
-                  data: actual,
-                  borderColor: 'orange',
-                  borderWidth: 1,
-                  fill: false,
-                  tension: 0.3,
-                  pointRadius: 3
-                }
-              ]
-            },
-            options: {
-              plugins: {
-                legend: { labels: { color: '#fff' } },
-                tooltip: {
-                  callbacks: {
-                    label: function (context) {
-                      return `${context.dataset.label} at ${context.label}: ${context.formattedValue} MW`;
-                    }
+        if (chart) chart.destroy();
+        chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Forecasted (MW)',
+                data: forecast,
+                borderColor: 'cyan',
+                borderWidth: 1,
+                fill: false,
+                tension: 0.3,
+                pointRadius: 3
+              },
+              {
+                label: 'Actual (MW)',
+                data: actual,
+                borderColor: 'orange',
+                borderWidth: 1,
+                fill: false,
+                tension: 0.3,
+                pointRadius: 3
+              }
+            ]
+          },
+          options: {
+            plugins: {
+              legend: { labels: { color: '#fff' } },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    return `${context.dataset.label} at ${context.label}: ${context.formattedValue} MW`;
                   }
                 }
+              }
+            },
+            scales: {
+              x: {
+                ticks: { color: '#ccc' },
+                title: { display: true, text: 'Time', color: '#fff' }
               },
-              scales: {
-                x: {
-                  ticks: { color: '#ccc' },
-                  title: { display: true, text: 'Time', color: '#fff' }
-                },
-                y: {
-                  ticks: { color: '#ccc' },
-                  title: { display: true, text: 'Power (MW)', color: '#fff' }
-                }
+              y: {
+                ticks: { color: '#ccc' },
+                title: { display: true, text: 'Power (MW)', color: '#fff' }
               }
             }
-          });
-
-          document.getElementById('chartContainer').style.display = 'block';
-          document.getElementById('chartTitle').innerText = `Forecast vs Actual – ${stationName}`;
-        });
-    }
-
-    function addStationsToMap(stationList, dropdownId) {
-      stationList.forEach(station => {
-        const marker = L.marker([station.lat, station.lon]).addTo(map);
-        marker.bindPopup(`<b>${station.name}</b>`);
-        marker.on('click', () => {
-          loadCSV(`./${station.file}`, station.name);
-          document.getElementById(dropdownId).value = station.name;
+          }
         });
 
-        const option = document.createElement('option');
-        option.value = station.name;
-        option.text = station.name;
-        document.getElementById(dropdownId).appendChild(option);
+        document.getElementById('chartContainer').style.display = 'block';
+        document.getElementById('chartTitle').innerText = `Forecast vs Actual – ${stationName}`;
       });
+  }
+
+  function addStationsToMap(stationList, dropdownId, folder) {
+    stationList.forEach(station => {
+      const marker = L.marker([station.lat, station.lon]).addTo(map);
+      marker.bindPopup(`<b>${station.name}</b>`);
+      marker.on('click', () => {
+        const url = `https://raw.githubusercontent.com/ipsitadash05/wind-solar-forecast-dashboard/main/${folder}/${station.file}`;
+        loadCSV(url, station.name);
+        document.getElementById(dropdownId).value = station.name;
+      });
+
+      const option = document.createElement('option');
+      option.value = station.name;
+      option.text = station.name;
+      document.getElementById(dropdownId).appendChild(option);
+    });
+  }
+
+  // Load stations into map and dropdowns
+  addStationsToMap(solarStations, 'solarStationDropdown', 'solar_data');
+  addStationsToMap(windStations, 'windStationDropdown', 'data');
+
+  // Dropdown listeners
+  document.getElementById('solarStationDropdown').addEventListener('change', function () {
+    const selected = solarStations.find(s => s.name === this.value);
+    if (selected) {
+      map.setView([selected.lat, selected.lon], 8);
+      const url = `https://raw.githubusercontent.com/ipsitadash05/wind-solar-forecast-dashboard/main/solar_data/${selected.file}`;
+      loadCSV(url, selected.name);
     }
+  });
 
-    addStationsToMap(solarStations, 'solarStationDropdown');
-    addStationsToMap(windStations, 'windStationDropdown');
-
-    document.getElementById('solarStationDropdown').addEventListener('change', function () {
-      const selected = solarStations.find(s => s.name === this.value);
-      if (selected) {
-        map.setView([selected.lat, selected.lon], 8);
-        loadCSV(`./${selected.file}`, selected.name);
-      }
-    });
-
-    document.getElementById('windStationDropdown').addEventListener('change', function () {
-      const selected = windStations.find(s => s.name === this.value);
-      if (selected) {
-        map.setView([selected.lat, selected.lon], 8);
-        loadCSV(`./${selected.file}`, selected.name);
-      }
-    });
-  </script>
+  document.getElementById('windStationDropdown').addEventListener('change', function () {
+    const selected = windStations.find(s => s.name === this.value);
+    if (selected) {
+      map.setView([selected.lat, selected.lon], 8);
+      const url = `https://raw.githubusercontent.com/ipsitadash05/wind-solar-forecast-dashboard/main/data/${selected.file}`;
+      loadCSV(url, selected.name);
+    }
+  });
+</script>  
 </body>
 </html>
