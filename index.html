@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>🌞 REGenMap – India Solar & Wind Forecast Dashboard</title>
+  <title>🌞 REGenMap – India Solar Forecast Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
- 
+  <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <style>
     body {
       margin: 0;
@@ -70,7 +70,7 @@
 <body>
   <div id="sidebar">
     <h2>🌞 REGenMap</h2>
-    <p>India – Solar & Wind Forecast Dashboard</p>
+    <p>India – Solar Forecast Dashboard</p>
 
     <div class="section-title">Solar Station Selector</div>
     <select id="solarStationDropdown">
@@ -105,11 +105,12 @@
     ];
 
     const solarStations = [
-      { name: "Solar Station 1", lat: 21.15, lon: 75.45, file: "SolarStation1.csv" },
-      { name: "Solar Station 2", lat: 22.85, lon: 74.20, file: "SolarStation2.csv" }
+      { name: "Wind Station 1", lat: 21.15, lon: 75.45, file: "WindStation1.csv" },
+      { name: "Wind Station 2", lat: 22.85, lon: 74.20, file: "WindStation2.csv" }
     ];
 
     let map = L.map('map').setView([22.5, 78.9], 5.2);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; OpenStreetMap'
@@ -123,11 +124,13 @@
         .then(response => response.text())
         .then(data => {
           const rows = data.trim().split('\n');
-          const labels = [], forecast = [], actual = [];
+          const labels = [];
+          const forecast = [];
+          const actual = [];
 
           for (let i = 1; i < rows.length; i++) {
             const cols = rows[i].split(',');
-            labels.push(cols[0]);
+            labels.push(cols[0]);             // Time
             forecast.push(parseFloat(cols[1]));
             actual.push(parseFloat(cols[2]));
           }
@@ -187,13 +190,12 @@
         });
     }
 
-    function addStationsToMap(stationList, dropdownId, folderName) {
+    function addStationsToMap(stationList, dropdownId) {
       stationList.forEach(station => {
         const marker = L.marker([station.lat, station.lon]).addTo(map);
         marker.bindPopup(`<b>${station.name}</b>`);
         marker.on('click', () => {
-          const url = `https://raw.githubusercontent.com/ipsitadash05/wind-solar-forecast-dashboard/main/${folderName}/${station.file}`;
-          loadCSV(url, station.name);
+          loadCSV(`./${station.file}`, station.name);
           document.getElementById(dropdownId).value = station.name;
         });
 
@@ -204,15 +206,16 @@
       });
     }
 
-    addStationsToMap(solarStations, 'solarStationDropdown', 'solar_data');
-    addStationsToMap(windStations, 'windStationDropdown', 'data');
+    // Load solar and wind stations
+    addStationsToMap(solarStations, 'solarStationDropdown');
+    addStationsToMap(windStations, 'windStationDropdown');
 
+    // Dropdown event listeners
     document.getElementById('solarStationDropdown').addEventListener('change', function () {
       const selected = solarStations.find(s => s.name === this.value);
       if (selected) {
         map.setView([selected.lat, selected.lon], 8);
-        const url = `https://raw.githubusercontent.com/ipsitadash05/wind-solar-forecast-dashboard/main/solar_data/${selected.file}`;
-        loadCSV(url, selected.name);
+        loadCSV(`./${selected.file}`, selected.name);
       }
     });
 
@@ -220,8 +223,7 @@
       const selected = windStations.find(s => s.name === this.value);
       if (selected) {
         map.setView([selected.lat, selected.lon], 8);
-        const url = `https://raw.githubusercontent.com/ipsitadash05/wind-solar-forecast-dashboard/main/data/${selected.file}`;
-        loadCSV(url, selected.name);
+        loadCSV(`./${selected.file}`, selected.name);
       }
     });
   </script>
