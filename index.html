@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <title>🌞 REGenMap – India Solar & Wind Forecast Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Leaflet -->
+ 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- Chart.js -->
+  
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
@@ -206,11 +206,9 @@
       });
     }
 
-    // Load solar and wind stations
     addStationsToMap(solarStations, 'solarStationDropdown');
     addStationsToMap(windStations, 'windStationDropdown');
 
-    // Dropdown event listeners
     document.getElementById('solarStationDropdown').addEventListener('change', function () {
       const selected = solarStations.find(s => s.name === this.value);
       if (selected) {
